@@ -455,9 +455,12 @@ class DockerDaemon(AgentCheck):
         ip = ecs_config.get('NetworkSettings', {}).get('IPAddress')
         ports = ecs_config.get('NetworkSettings', {}).get('Ports')
         port = ports.keys()[0].split('/')[0] if ports else None
+        network_mode = ecs_config.get('HostConfig', {}).get('NetworkMode')
         if not ip:
             port = ECS_INTROSPECT_DEFAULT_PORT
-            if Platform.is_containerized() and self.docker_gateway:
+            if network_mode == 'host':
+                ip = "localhost"
+            elif Platform.is_containerized() and self.docker_gateway:
                 ip = self.docker_gateway
             else:
                 ip = "localhost"
